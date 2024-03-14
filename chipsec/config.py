@@ -194,6 +194,14 @@ class Cfg:
                 dest[data.vid_str][did_str].append(sku)
 
     def _find_sku_data(self, dict_ref, code, detect_val=None):
+        """
+        @param dict_ref : Dict of known chipset/processor config (from chipsec/cfg/*)
+        @param code :
+        @param detect_val : Integer representation of CPUID
+        """
+
+        # For each config, check if the config matches the current system config
+        # Note: self.CONFIG_PCI_RAW is the {<vid>:{<did>:{bus info}}} of the current system
         possible_sku = []
         for vid_str in dict_ref:
             for did_str in dict_ref[vid_str]:
@@ -205,6 +213,7 @@ class Cfg:
                             continue
                         if did_str not in self.CONFIG_PCI_RAW[vid_str]:
                             continue
+                        # Check if detect_val matches the `detection_value` in the current xml config
                         if sku['detect'] and detect_val and detect_val not in sku['detect']:
                             possible_sku.append(sku)
                             continue
