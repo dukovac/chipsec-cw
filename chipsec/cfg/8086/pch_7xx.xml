@@ -1,0 +1,277 @@
+<?xml version="1.0"?>
+<configuration platform="PCH_7XX">
+<!--
+CHIPSEC: Platform Security Assessment Framework
+Copyright (c) 2021-2022, Intel Corporation
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; Version 2.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+Contact information:
+chipsec@intel.com
+-->
+<!--
+XML configuration file for 7XX series pch
+Based upon datasheet(s):
+   606161 - Intel C740 Series Chipset Platform Controller Hub
+-->
+
+  <!-- #################################### -->
+  <!--                                      -->
+  <!-- Information                          -->
+  <!--                                      -->
+  <!-- #################################### -->
+  <info>
+    <sku did="0x1B81" name="74X" code="PCH_74X" longname="Intel Emmitsburg (C740 series) PCH"/>
+  </info>
+
+  <!-- #################################### -->
+  <!--                                      -->
+  <!-- Integrated devices                   -->
+  <!--                                      -->
+  <!-- #################################### -->
+  <pci>
+    <device name="eSPI"    bus="0" dev="0x1F" fun="0" vid="0x8086" did="0x1B81" />
+    <device name="P2SBC"   bus="0" dev="0x1F" fun="1" vid="0x8086" did="0x1BC6" />
+    <device name="PMC"     bus="0" dev="0x1F" fun="2" vid="0x8086" did="0x1BC7" />
+    <device name="HDA"     bus="0" dev="0x1F" fun="3" vid="0x8086" did="0x1BC8" />
+    <device name="SMBUS"   bus="0" dev="0x1F" fun="4" vid="0x8086" did="0x1BC9" />
+    <device name="SPI"     bus="0" dev="0x1F" fun="5" vid="0x8086" did="0x1BCA" />
+  </pci>
+
+  <!-- #################################### -->
+  <!--                                      -->
+  <!-- Memory Mapped I/O spaces (MMIO BARs) -->
+  <!--                                      -->
+  <!-- #################################### -->
+  <mmio>
+    <bar name="SPIBAR"   bus="0" dev="0x1F" fun="5" reg="0x10" width="4" mask="0xFFFFF000" size="0x1000" desc="SPI Controller Register Range"/>
+  </mmio>
+
+
+  <!-- #################################### -->
+  <!--                                      -->
+  <!-- Memory ranges                        -->
+  <!--                                      -->
+  <!-- #################################### -->
+  <memory>
+  </memory>
+
+  <!-- #################################### -->
+  <!--                                      -->
+  <!-- Configuration registers              -->
+  <!--                                      -->
+  <!-- #################################### -->
+  <registers>
+
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <!-- MMIO registers               -->
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+
+    <!-- PCH SPIBAR registers -->
+    <register name="SPIBAR" type="pcicfg" bus="0" dev="0x1f" fun="5" offset="0x10" size="4" desc="" >
+        <field name="BA" bit="12" size="20" desc="Memory BAR"/>
+    </register>
+
+    <!-- BFPR Reg - OK -->
+    <register name="BFPR" type="mmio" bar="SPIBAR" offset="0x00" size="4" desc="BIOS Flash Primary Region Register (= FREG1)">
+      <field name="PRB"  bit="0"  size="15" desc="BIOS Flash Primary Region Base"/>
+      <field name="PRL"  bit="16" size="15" desc="BIOS Flash Primary Region Limit"/>
+      <field name="SBRS"  bit="31" size="1" desc="Shadowed BIOS Region Select"/>
+    </register>
+
+    <!-- HSFS Reg - OK -->
+    <register name="HSFS" type="mmio" bar="SPIBAR" offset="0x4" size="4" desc="Hardware Sequencing Flash Status Register">
+      <field name="FDONE"   bit="0"  size="1" desc="Flash Cycle Done"/>
+      <field name="FCERR"   bit="1"  size="1" desc="Flash Cycle Error"/>
+      <field name="AEL"     bit="2"  size="1" desc="Access Error Log"/>
+      <field name="SCIP"    bit="5"  size="1" desc="SPI cycle in progress"/>
+      <field name="WRSDIS"  bit="11" size="1" desc="Write status disable"/>
+      <field name="PR34LKD" bit="12" size="1" desc="PRR3 PRR4 Lock-Down"/>
+      <field name="FDOPSS"  bit="13" size="1" desc="Flash Descriptor Override Pin-Strap Status"/>
+      <field name="FDV"     bit="14" size="1" desc="Flash Descriptor Valid"/>
+      <field name="FLOCKDN" bit="15" size="1" desc="Flash Configuration Lock-Down"/>
+      <field name="FGO"     bit="16" size="1" desc="Flash cycle go"/>
+      <field name="FCYCLE"  bit="17" size="4" desc="Flash Cycle Type"/>
+      <field name="WET"     bit="21" size="1" desc="Write Enable Type"/>
+      <field name="FDBC"    bit="24" size="6" desc="Flash Data Byte Count"/>
+      <field name="FSMIE"   bit="31" size="1" desc="Flash SPI SMI# Enable"/>
+    </register>
+
+    <!-- FADDR Reg - OK -->
+    <register name="FADDR" type="mmio" bar="SPIBAR" offset="0x8" size="4" desc="Flash Address" >
+    </register>
+
+    <!-- DLOCK      Reg - TODO -->
+    <!-- FDATA0-16  Reg - TODO -->
+
+    <!-- FRACC Reg - OK -->
+    <register name="FRAP" type="mmio" bar="SPIBAR" offset="0x50" size="4" desc="Flash Region Access Permissions" >
+        <field name="BRRA" bit="0" size="8" desc="BIOS Region Read Access"/>
+        <field name="BRWA" bit="8" size="8" desc="BIOS Region Write Access"/>
+        <field name="BMRAG" bit="16" size="8" desc="BIOS Master Read Access Grant"/>
+        <field name="BMWAG" bit="24" size="8" desc="BIOS Master Write Access Grant"/>
+    </register>
+
+    <!-- FREG0 Reg - OK -->
+    <register name="FREG0_FLASHD" type="mmio" bar="SPIBAR" offset="0x54" size="4" desc="Flash Region 0 (Flash Descriptor)">
+      <field name="RB" bit="0"  size="15" desc="Region Base"/>
+      <field name="RL" bit="16" size="15" desc="Region Limit"/>
+    </register>
+
+    <!-- FREG1 Reg - OK -->
+    <register name="FREG1_BIOS" type="mmio" bar="SPIBAR" offset="0x58" size="4" desc="Flash Region 1 (BIOS)">
+      <field name="RB" bit="0"  size="15" desc="Region Base"/>
+      <field name="RL" bit="16" size="15" desc="Region Limit"/>
+    </register>
+  
+    <!-- FREG2 Reg - OK -->
+    <register name="FREG2_ME" type="mmio" bar="SPIBAR" offset="0x5C" size="4" desc="Flash Region 2 (ME)">
+      <field name="RB" bit="0"  size="15" desc="Region Base"/>
+      <field name="RL" bit="16" size="15" desc="Region Limit"/>
+    </register>
+
+    <!-- FREG3 Reg - OK -->
+    <register name="FREG3_GBE" type="mmio" bar="SPIBAR" offset="0x60" size="4" desc="Flash Region 3 (GBe)">
+      <field name="RB" bit="0"  size="15" desc="Region Base"/>
+      <field name="RL" bit="16" size="15" desc="Region Limit"/>
+    </register>
+
+    <!-- FREG4 Reg - OK -->
+    <register name="FREG4_PD" type="mmio" bar="SPIBAR" offset="0x64" size="4" desc="Flash Region 4 (Platform Data)">
+      <field name="RB" bit="0"  size="15" desc="Region Base"/>
+      <field name="RL" bit="16" size="15" desc="Region Limit"/>
+    </register>
+  
+    <!-- FREG5 Reg - OK -->
+    <register name="FREG5" type="mmio" bar="SPIBAR" offset="0x68" size="4" desc="Flash Region 5 (Device Expansion)">
+      <field name="RB" bit="0"  size="15" desc="Region Base"/>
+      <field name="RL" bit="16" size="15" desc="Region Limit"/>
+    </register>
+
+    <!-- FREG6 Reg - OK -->
+    <register name="FREG6" type="mmio" bar="SPIBAR" offset="0x6C" size="4" desc="Flash Region 6 (Secondary BIOS)">
+      <field name="RB" bit="0"  size="15" desc="Region Base"/>
+      <field name="RL" bit="16" size="15" desc="Region Limit"/>
+    </register>
+
+    <!-- FREG7-15 Reg - TODO -->
+
+    <!-- PR0 Reg - OK -->
+    <register name="PR0" type="mmio" bar="SPIBAR" offset="0x84" size="4" desc="Protected Range 0">
+      <field name="PRB" bit="0"  size="15"/>
+      <field name="RPE" bit="15" size="1"/>
+      <field name="PRL" bit="16" size="15"/>
+      <field name="WPE" bit="31" size="1"/>
+    </register>
+
+    <!-- PR1 Reg - OK -->
+    <register name="PR1" type="mmio" bar="SPIBAR" offset="0x88" size="4" desc="Protected Range 1">
+      <field name="PRB" bit="0"  size="15"/>
+      <field name="RPE" bit="15" size="1"/>
+      <field name="PRL" bit="16" size="15"/>
+      <field name="WPE" bit="31" size="1"/>
+    </register>
+
+    <!-- PR2 Reg - OK -->
+    <register name="PR2" type="mmio" bar="SPIBAR" offset="0x8C" size="4" desc="Protected Range 2">
+      <field name="PRB" bit="0"  size="15"/>
+      <field name="RPE" bit="15" size="1"/>
+      <field name="PRL" bit="16" size="15"/>
+      <field name="WPE" bit="31" size="1"/>
+    </register>
+
+    <!-- PR3 Reg - OK -->
+    <register name="PR3" type="mmio" bar="SPIBAR" offset="0x90" size="4" desc="Protected Range 3">
+      <field name="PRB" bit="0"  size="15"/>
+      <field name="RPE" bit="15" size="1"/>
+      <field name="PRL" bit="16" size="15"/>
+      <field name="WPE" bit="31" size="1"/>
+    </register>
+
+    <!-- PR4 Reg - OK -->
+    <register name="PR4" type="mmio" bar="SPIBAR" offset="0x94" size="4" desc="Protected Range 4">
+      <field name="PRB" bit="0"  size="15"/>
+      <field name="RPE" bit="15" size="1"/>
+      <field name="PRL" bit="16" size="15"/>
+      <field name="WPE" bit="31" size="1"/>
+    </register>
+
+    <!-- GPR0 Reg - TODO -->
+    <!-- SFRACC Reg - TODO -->
+
+    <!-- FDOC Reg - OK -->
+    <register name="FDOC" type="mmio" bar="SPIBAR" offset="0xB4" size="4" desc="Flash Descriptor Observability Control Register">
+      <field name="FDSI" bit="2"  size="10" desc="Flash Descriptor Section Index"/>
+      <field name="FDSS" bit="12" size="3"  desc="Flash Descriptor Section Select"/>
+    </register>
+
+    <!-- FDOD Reg - OK -->
+    <register name="FDOD" type="mmio" bar="SPIBAR" offset="0xB8" size="4" desc="Flash Descriptor Observability Data Register">
+      <field name="FDSD" bit="0"  size="32" desc="Flash Descriptor Section Data"/>
+    </register>
+
+    <!-- AFC Reg - TODO -->
+
+    <!-- VSC01 Reg - OK - TODO: Not supported for non-SFDP capable devices -->
+    <register name="VSCC0" type="mmio" bar="SPIBAR" offset="0xC4" size="4" desc="Vendor Specific Component Capabilities">
+      <field name="WG"                 bit="2"  size="1" desc="Write Granularity"/>
+      <field name="WSR"                bit="3"  size="1" desc="Write Status Required"/>
+      <field name="WEWS"               bit="4"  size="1" desc="Write Enable on Write Status"/>
+      <field name="QER"                bit="5"  size="3" desc="Quad Enable Requirements"/>
+      <field name="EO_4k"              bit="8"  size="8" desc="4k Erase Opcode"/>
+      <field name="EO_64k"             bit="16" size="8" desc="64k Erase Opcode"/>
+      <field name="SOFT_RST_SUP"       bit="24" size="1" desc="Soft Reset Supported"/>
+      <field name="SUSPEND_RESUME_SUP" bit="25" size="1" desc="Suspend/Resume Supported"/>
+      <field name="DEEP_PWRDN_SUP"     bit="26" size="1" desc="Deep Powerdown Supported"/>
+      <field name="RPMC_SUP"           bit="27" size="1" desc="RPMC Supported"/>
+      <field name="EO_4k_VALID"        bit="28" size="1" desc="4k Erase Valid"/>
+      <field name="EO_64k_VALID"       bit="29" size="1" desc="64k Erase Valid"/>
+      <field name="VCL"                bit="30" size="1" desc="Vendor Component Lock"/>
+      <field name="CPPTV"              bit="31" size="1" desc="Component Property Parameter Table Valid"/>
+    </register>
+
+    <!-- VSCC2 Reg - OK -->
+    <register name="VSCC2" type="mmio" bar="SPIBAR" offset="0xC8" size="4" desc="Vendor Specific Component Capabilities">
+      <field name="WG"                 bit="2"  size="1" desc="Write Granularity"/>
+      <field name="WSR"                bit="3"  size="1" desc="Write Status Required"/>
+      <field name="WEWS"               bit="4"  size="1" desc="Write Enable on Write Status"/>
+      <field name="QER"                bit="5"  size="3" desc="Quad Enable Requirements"/>
+      <field name="EO_4k"              bit="8"  size="8" desc="4k Erase Opcode"/>
+      <field name="EO_64k"             bit="16" size="8" desc="64k Erase Opcode"/>
+      <field name="SOFT_RST_SUP"       bit="24" size="1" desc="Soft Reset Supported"/>
+      <field name="SUSPEND_RESUME_SUP" bit="25" size="1" desc="Suspend/Resume Supported"/>
+      <field name="DEEP_PWRDN_SUP"     bit="26" size="1" desc="Deep Powerdown Supported"/>
+      <field name="RPMC_SUP"           bit="27" size="1" desc="RPMC Supported"/>
+      <field name="EO_4k_VALID"        bit="28" size="1" desc="4k Erase Valid"/>
+      <field name="EO_64k_VALID"       bit="29" size="1" desc="64k Erase Valid"/>
+      <field name="CPPTV"              bit="31" size="1" desc="Component Property Parameter Table Valid"/>
+    </register>
+
+    <!-- PTINX Reg - TODO -->
+    <!-- PTDATA Reg - TODO -->
+    <!-- SBRS Reg - TODO -->
+
+    <!-- MRAP Reg - OK -->
+    <register name="MRAP" type="mmio" bar="SPIBAR" offset="0x118" size="4" desc="BIOS Master Read Access Permissions">
+      <field name="BMRAP"              bit="0"  size="16" desc=""/>
+    </register>
+
+    <!-- MWAP Reg - OK -->
+    <register name="MWAP" type="mmio" bar="SPIBAR" offset="0x11C" size="4" desc="BIOS Master Write Access Permissions">
+      <field name="BMWAP"              bit="0"  size="16" desc=""/>
+    </register>
+
+</registers>
+
+</configuration>
