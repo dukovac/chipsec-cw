@@ -21,8 +21,8 @@
 
 import re
 import traceback
-import chipsec.logger
-from chipsec.module_common import ModuleResult
+import chipsec.library.logger
+from chipsec.library.returncode import ModuleResult
 
 _importlib = True
 try:
@@ -35,7 +35,7 @@ MODPATH_RE = re.compile(r"^\w+(\.\w+)*$")
 
 class Module:
     def __init__(self, name):
-        self.logger = chipsec.logger.logger()
+        self.logger = chipsec.library.logger.logger()
         self.name = name
         self.module = None
         self.mod_obj = None
@@ -87,7 +87,8 @@ class Module:
                 if self.mod_obj.is_supported():
                     result = self.mod_obj.run(module_argv)
                 else:
-                    result = ModuleResult.NOTAPPLICABLE
+                    self.mod_obj.result.setStatusBit(self.mod_obj.result.status.NOT_APPLICABLE)
+                    result = self.mod_obj.result.getReturnCode(ModuleResult.NOTAPPLICABLE)
                     self.logger.log(f'Skipping module {self.name} since it is not applicable in this environment and/or platform')
 
         return result

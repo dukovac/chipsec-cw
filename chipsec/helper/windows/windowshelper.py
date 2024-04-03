@@ -45,11 +45,11 @@ from win32.lib import win32con
 if TYPE_CHECKING:
     from pywintypes import PyHANDLE
 
-from chipsec.exceptions import OsHelperError, HWAccessViolationError, UnimplementedAPIError
+from chipsec.library.exceptions import OsHelperError, HWAccessViolationError, UnimplementedAPIError
 from chipsec.helper.basehelper import Helper
-from chipsec.defines import stringtobytes, bytestostring
-from chipsec.logger import logger
-import chipsec.file
+from chipsec.library.defines import stringtobytes, bytestostring
+from chipsec.library.logger import logger
+import chipsec.library.file
 from chipsec.hal.uefi_common import EFI_GUID_STR
 
 
@@ -65,7 +65,7 @@ kernel32 = windll.kernel32
 
 drv_hndl_error_msg = "Cannot open chipsec driver handle. Make sure chipsec driver is installed and started if you are using option -e (see README)"
 
-DRIVER_FILE_PATHS = [os.path.join("C:\\", "Windows", "System32", "drivers"), os.path.join(chipsec.file.get_main_dir(), "chipsec", "helper", "windows", f'windows_{platform.machine().lower()}')]
+DRIVER_FILE_PATHS = [os.path.join("C:\\", "Windows", "System32", "drivers"), os.path.join(chipsec.library.file.get_main_dir(), "chipsec", "helper", "windows", f'windows_{platform.machine().lower()}')]
 DRIVER_FILE_NAME = "chipsec_hlpr.sys"
 DEVICE_FILE = "\\\\.\\chipsec_hlpr"
 SERVICE_NAME = "chipsec"
@@ -413,7 +413,7 @@ class WindowsHelper(Helper):
         if self.use_existing_service:
             return True
 
-        logger().log_debug("[helper] Stopping service '{SERVICE_NAME}'...")
+        logger().log_debug(f"[helper] Stopping service '{SERVICE_NAME}'...")
         try:
             win32api.CloseHandle(self.driver_handle)
             self.driver_handle = None
@@ -443,13 +443,13 @@ class WindowsHelper(Helper):
             logger().log_warning(f"Cannot delete service '{SERVICE_NAME}' (not stopped)")
             return False
 
-        logger().log_debug("[helper] Deleting service '{SERVICE_NAME}'...")
+        logger().log_debug(f"[helper] Deleting service '{SERVICE_NAME}'...")
         try:
             win32serviceutil.RemoveService(SERVICE_NAME)
-            logger().log_debug("[helper] Service '{SERVICE_NAME}' deleted")
+            logger().log_debug(f"[helper] Service '{SERVICE_NAME}' deleted")
         except win32service.error as err:
             if logger().DEBUG:
-                logger().log_warning("RemoveService failed: {err.args[2]} ({err.args[0]:d})")
+                logger().log_warning(f"RemoveService failed: {err.args[2]} ({err.args[0]:d})")
             return False
 
         return True
@@ -777,10 +777,10 @@ class WindowsHelper(Helper):
             return None
         if 0 != status:
             lasterror = kernel32.GetLastError()
-            if (0xC0000001 == status and lasterror == 0x000003E6):  # ERROR_NOACCESS: Invalid access to memory location.  https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-erref/18d8fbe8-a967-4f1c-ae50-99ca8e491d2d
-                if logger().DEBUG:
-                    logger().log_warning('NtEnumerateSystemEnvironmentValuesEx was not successful (NTSTATUS = 0xC0000001)')
-                logger().log_debug('[*] Your Windows has restricted access to UEFI variables.\nTo use UEFI variable functions, chipsec needs to run in an older version of windows or in a different environment')
+            if (0xC0000001 == status):  # ERROR_NOACCESS: Invalid access to memory location.  https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-erref/18d8fbe8-a967-4f1c-ae50-99ca8e491d2d
+                logger().log_warning('NtEnumerateSystemEnvironmentValuesEx was not successful')
+                logger().log_debug(f'NTSTATUS = 0x{status:08X}, LastError = 0x{lasterror:X}')
+                logger().log_warning('Looks like your version of Windows has restricted access to UEFI variables.\n\tTo use UEFI variable functions, chipsec needs to run in an older version of windows or in a different environment (Linux)')
                 return None
             else:
                 if logger().DEBUG:

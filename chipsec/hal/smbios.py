@@ -25,9 +25,9 @@ HAL component providing access to and decoding of SMBIOS structures
 import struct
 from collections import namedtuple
 from typing import Dict, List, Optional, Tuple, Any, Union, Type
-from chipsec.defines import BOUNDARY_1MB, bytestostring
+from chipsec.library.defines import BOUNDARY_1MB, bytestostring
 from chipsec.hal import hal_base, uefi
-from chipsec.logger import logger
+from chipsec.library.logger import logger
 
 SCAN_LOW_LIMIT = 0xF0000
 SCAN_SIZE = 0x10000

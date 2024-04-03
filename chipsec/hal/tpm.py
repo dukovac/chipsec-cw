@@ -29,7 +29,7 @@ import struct
 from collections import namedtuple
 from typing import Dict, Tuple, Callable
 
-from chipsec.logger import print_buffer_bytes
+from chipsec.library.logger import print_buffer_bytes
 from chipsec.hal import hal_base
 import chipsec.hal.tpm12_commands
 
@@ -357,7 +357,7 @@ class TPM(hal_base.HALBase):
 
     def dump_register(self, register_name: str, locality: str) -> None:
         self.cs.Cfg.REGISTERS[register_name]['address'] = self.cs.Cfg.REGISTERS[register_name]['address'] ^ LOCALITY[locality]
-        register = self.cs.read_register_dict(register_name)
+        register = self.cs.register.read_dict(register_name)
 
         self.log_register_header(register_name, locality)
 

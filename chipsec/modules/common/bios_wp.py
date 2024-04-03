@@ -57,7 +57,8 @@ Registers used: (n = 0,1,2,3,4)
 
 """
 
-from chipsec.module_common import BaseModule, ModuleResult, MTAG_BIOS
+from chipsec.module_common import BaseModule, MTAG_BIOS
+from chipsec.library.returncode import ModuleResult
 from chipsec.hal.spi import BIOS, SPI
 from typing import List
 
@@ -70,24 +71,23 @@ class bios_wp(BaseModule):
     def __init__(self):
         BaseModule.__init__(self)
         self.spi = SPI(self.cs)
-        self.rc_res = ModuleResult(0xd1e21a2, 'https://chipsec.github.io/modules/chipsec.modules.common.bios_wp.html')
+        self.result.id = 0xd1e21a2
+        self.result.url = 'https://chipsec.github.io/modules/chipsec.modules.common.bios_wp.html'
 
     def is_supported(self) -> bool:
-        ble_exists = self.cs.is_control_defined('BiosLockEnable')
-        bioswe_exists = self.cs.is_control_defined('BiosWriteEnable')
-        smmbwp_exists = self.cs.is_control_defined('SmmBiosWriteProtection')
+        ble_exists = self.cs.control.is_defined('BiosLockEnable')
+        bioswe_exists = self.cs.control.is_defined('BiosWriteEnable')
+        smmbwp_exists = self.cs.control.is_defined('SmmBiosWriteProtection')
 
         if ble_exists and bioswe_exists and smmbwp_exists:
             return True
         self.logger.log_important('Required Controls are not defined for platform.  Skipping module.')
-        self.rc_res.setStatusBit(self.rc_res.status.NOT_APPLICABLE)
-        self.res = self.rc_res.getReturnCode(ModuleResult.NOTAPPLICABLE)
         return False
 
     def check_BIOS_write_protection(self) -> int:
-        ble = self.cs.get_control('BiosLockEnable', with_print=True)
-        bioswe = self.cs.get_control('BiosWriteEnable')
-        smmbwp = self.cs.get_control('SmmBiosWriteProtection')
+        ble = self.cs.control.get('BiosLockEnable', with_print=True)
+        bioswe = self.cs.control.get('BiosWriteEnable')
+        smmbwp = self.cs.control.get('SmmBiosWriteProtection')
 
         # Is the BIOS flash region write protected?
         write_protected = 0
@@ -175,8 +175,8 @@ class bios_wp(BaseModule):
                 self.logger.log_failed("BIOS is NOT protected completely")
 
         if wp or spr:
-            self.rc_res.setStatusBit(self.rc_res.status.SUCCESS)
-            return self.rc_res.getReturnCode(ModuleResult.PASSED)
+            self.result.setStatusBit(self.result.status.SUCCESS)
+            return self.result.getReturnCode(ModuleResult.PASSED)
         else:
-            self.rc_res.setStatusBit(self.rc_res.status.POTENTIALLY_VULNERABLE)
-            return self.rc_res.getReturnCode(ModuleResult.FAILED)
+            self.result.setStatusBit(self.result.status.POTENTIALLY_VULNERABLE)
+            return self.result.getReturnCode(ModuleResult.FAILED)

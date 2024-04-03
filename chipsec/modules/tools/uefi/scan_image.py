@@ -56,13 +56,14 @@ in it against a list defined in ``efilist.json``
 import json
 import os
 
-from chipsec.module_common import BaseModule, ModuleResult, MTAG_BIOS
+from chipsec.module_common import BaseModule, MTAG_BIOS
+from chipsec.library.returncode import ModuleResult
 
 from chipsec.hal.uefi import UEFI
 from chipsec.hal.spi import SPI, BIOS
 from chipsec.hal.uefi_fv import EFI_MODULE, EFI_SECTION, SECTION_NAMES, EFI_SECTION_PE32
 from chipsec.hal.spi_uefi import build_efi_model, search_efi_tree, EFIModuleType, UUIDEncoder
-from chipsec.file import write_file, read_file
+from chipsec.library.file import write_file, read_file
 
 TAGS = [MTAG_BIOS]
 

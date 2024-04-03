@@ -33,15 +33,17 @@ Example:
     - Module is INFORMATION only and does NOT return a Pass/Fail
 """
 
-from chipsec.module_common import BaseModule, ModuleResult
-from chipsec.defines import BIT7, BIT20
-from chipsec.exceptions import HWAccessViolationError
+from chipsec.module_common import BaseModule
+from chipsec.library.returncode import ModuleResult
+from chipsec.library.defines import BIT7, BIT20
+from chipsec.library.exceptions import HWAccessViolationError
 
 
 class cet(BaseModule):
     def __init__(self):
         super(cet, self).__init__()
-        self.rc_res = ModuleResult(0x014b813, 'https://chipsec.github.io/modules/chipsec.modules.common.cet.html')
+        self.result.id = 0x014b813
+        self.result.url = 'https://chipsec.github.io/modules/chipsec.modules.common.cet.html'
         self.cpuid_7_0__ecx_val = None
 
     def is_supported(self):
@@ -49,8 +51,6 @@ class cet(BaseModule):
         if supported:
             return True
         self.logger.log_important('CET is not defined for the platform.  Skipping module.')
-        self.rc_res.setStatusBit(self.rc_res.status.NOT_APPLICABLE)
-        self.res = self.rc_res.getReturnCode(ModuleResult.NOTAPPLICABLE)
         return False
 
     def get_cpuid_value(self) -> None:
@@ -85,18 +85,17 @@ class cet(BaseModule):
                   'SUPPRESS_DIS',
                   'SUPPRESS']
         try:
-            msr_vals = self.cs.read_register_all(cet_msr)
-            reg = self.cs.get_register_def(cet_msr)
+            msr_vals = self.cs.register.read_all(cet_msr)
+            reg = self.cs.register.get_def(cet_msr)
             self.logger.log(f'{cet_msr} Settings:')
             for key in fields:
-                mask = self.cs.get_register_field_mask(cet_msr, key, True)
+                mask = self.cs.register.get_field_mask(cet_msr, key, True)
                 desc = reg['FIELDS'][key]['desc']
                 self.setting_enabled(msr_vals, key, mask, desc)
         except HWAccessViolationError:
             self.logger.log(f'Unable to read {cet_msr}')
 
     def check_cet(self):
-        res = ModuleResult.INFORMATION
         if self.support_shadow():
             self.logger.log("CET Shadow Stack is supported")
         else:
@@ -105,12 +104,14 @@ class cet(BaseModule):
             self.logger.log("CET Indirect Branch Tracking is supported")
         else:
             self.logger.log("CET Indirect Branch Tracking is unsupported")
-        if self.cs.is_register_defined("IA32_U_CET") and self.cs.is_register_defined("IA32_S_CET"):
+        if self.cs.register.is_defined("IA32_U_CET") and self.cs.register.is_defined("IA32_S_CET"):
             self.print_cet_state("IA32_U_CET")
             self.print_cet_state('IA32_S_CET')
-        return res
+        
+        self.result.setStatusBit(self.result.status.INFORMATION)
+        self.res = self.result.getReturnCode(ModuleResult.INFORMATION)
 
     def run(self, module_argv):
         self.logger.start_test("Checking CET Settings")
-        self.res = self.check_cet()
+        self.check_cet()
         return self.res

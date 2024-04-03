@@ -29,13 +29,13 @@ from typing import Dict, List, Tuple, Optional, Callable, Union
 from collections import defaultdict
 from collections import namedtuple
 
-from chipsec.defines import bytestostring
-from chipsec.exceptions import UnimplementedAPIError
-from chipsec.file import read_file
+from chipsec.library.defines import bytestostring
+from chipsec.library.exceptions import UnimplementedAPIError
+from chipsec.library.file import read_file
 from chipsec.hal import acpi_tables
 from chipsec.hal.hal_base import HALBase
 from chipsec.hal.uefi import UEFI
-from chipsec.logger import logger, print_buffer_bytes
+from chipsec.library.logger import logger, print_buffer_bytes
 from chipsec.hal.acpi_tables import ACPI_TABLE
 
 # ACPI Table Header Format

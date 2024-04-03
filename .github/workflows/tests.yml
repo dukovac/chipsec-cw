@@ -22,20 +22,23 @@ jobs:
           - {name: "archlinux", tag: "base", image_prefix: "docker.io/library/"}
           - {name: "centos", tag: "stream9", image_prefix: "quay.io/centos/"}
           - {name: "centos", tag: "stream8", image_prefix: "quay.io/centos/"}
-          - {name: "centos", tag: "7", image_prefix: "quay.io/centos/"}
           - {name: "debian", tag: "bookworm-slim", image_prefix: "docker.io/library/"}
           - {name: "debian", tag: "11", image_prefix: "docker.io/library/"}
           - {name: "debian", tag: "10", image_prefix: "docker.io/library/"}
           - {name: "ubuntu", tag: "23.04", image_prefix: "docker.io/library/"}
           - {name: "ubuntu", tag: "22.04", image_prefix: "docker.io/library/"}
           - {name: "ubuntu", tag: "20.04", image_prefix: "docker.io/library/"}
-          - {name: "ubuntu", tag: "18.04", image_prefix: "docker.io/library/"}
-          - {name: "ubuntu", tag: "16.04", image_prefix: "docker.io/library/"}
+
     runs-on: ubuntu-22.04
     container:
       image: docker://${{ matrix.distro.image_prefix }}${{ matrix.distro.name }}:${{ matrix.distro.tag }}
 
     steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+      with:
+        egress-policy: audit
+
     - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
 
     - name: Install Alpine dependencies
@@ -162,10 +165,15 @@ jobs:
     runs-on: windows-${{ matrix.versions.window }}
     
     steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+      with:
+        egress-policy: audit
+
     - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
 
     - name: Set up Python ${{ matrix.versions.python }}
-      uses: actions/setup-python@65d7f2d534ac1bc67fcd62888c5f4f3d2cb2b236 # v4.7.1
+      uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d # v5.1.0
       with:
         python-version: ${{ matrix.versions.python }}
 
@@ -220,8 +228,13 @@ jobs:
     runs-on: ubuntu-${{ matrix.versions.ubuntu }}
 
     steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+      with:
+        egress-policy: audit
+
     - name: Set up Python ${{ matrix.versions.python }}
-      uses: actions/setup-python@65d7f2d534ac1bc67fcd62888c5f4f3d2cb2b236 # v4.7.1
+      uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d # v5.1.0
       with:
         python-version: ${{ matrix.versions.python }}
 

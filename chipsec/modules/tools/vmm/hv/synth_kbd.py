@@ -27,14 +27,16 @@ Usage:
 
 Note: the fuzzer is incompatible with native VMBus driver (``vmbus.sys``). To use it, remove ``vmbus.sys``
 """
+import sys
 import traceback
-from struct import *
-from random import *
-from chipsec.modules.tools.vmm.hv.define import *
-from chipsec.modules.tools.vmm.common import *
-from chipsec.modules.tools.vmm.hv.vmbus import *
-from chipsec.defines import *
-import chipsec_util
+from random import randint
+from struct import pack, unpack
+from chipsec.library.defines import DD
+from chipsec.library.returncode import ModuleResult
+from chipsec.module_common import BaseModule
+from chipsec.modules.tools.vmm.common import overwrite, session_logger
+from chipsec.modules.tools.vmm.hv.define import HV_KBD_GUID, VMBUS_DATA_PACKET_FLAG_COMPLETION_REQUESTED, vm_pkt
+from chipsec.modules.tools.vmm.hv.vmbus import RingBuffer, VMBusDiscovery
 
 SYNTH_KBD_VERSION = 0x00010000
 SYNTH_KBD_PROTOCOL_REQUEST = 1
@@ -72,7 +74,8 @@ class RingBufferFuzzer(RingBuffer):
 class synth_kbd(BaseModule):
     def __init__(self):
         BaseModule.__init__(self)
-        self.rc_res = ModuleResult(0x0d28d62, 'https://chipsec.github.io/modules/chipsec.modules.tools.vmm.hv.synth_kbd.html')
+        self.result.id = 0x0d28d62
+        self.result.url = 'https://chipsec.github.io/modules/chipsec.modules.tools.vmm.hv.synth_kbd.html'
 
     def usage(self):
         print('  Usage:')
@@ -87,8 +90,8 @@ class synth_kbd(BaseModule):
             command = module_argv[0]
         else:
             self.usage()
-            self.rc_res.setStatusBit(self.rc_res.status.UNSUPPORTED_OPTION)
-            return self.rc_res.getReturnCode(ModuleResult.ERROR)
+            self.result.setStatusBit(self.result.status.UNSUPPORTED_OPTION)
+            return self.result.getReturnCode(ModuleResult.ERROR)
 
         vb = VMBusDiscovery()
         vb.debug = True
@@ -112,7 +115,8 @@ class synth_kbd(BaseModule):
             vb.print_open_channels()
 
             synth_kbd_protocol_request = pack('<LL', SYNTH_KBD_PROTOCOL_REQUEST, SYNTH_KBD_VERSION)
-            vb.vmbus_sendpacket(relid, synth_kbd_protocol_request, 0x0, VM_PKT_DATA_INBAND, VMBUS_DATA_PACKET_FLAG_COMPLETION_REQUESTED)
+            vmpkt_datainband = list(vm_pkt.keys())[list(vm_pkt.values()).index('VM_PKT_DATA_INBAND')]
+            vb.vmbus_sendpacket(relid, synth_kbd_protocol_request, 0x0, vmpkt_datainband, VMBUS_DATA_PACKET_FLAG_COMPLETION_REQUESTED)
             synth_kbd_protocol_response = vb.vmbus_recvpacket(relid)
             if len(synth_kbd_protocol_response) != 8:
                 vb.fatal('Invalid response from synthetic keyboard!')
@@ -143,7 +147,7 @@ class synth_kbd(BaseModule):
 
         except KeyboardInterrupt:
             print('***** Control-C *****')
-        except Exception as error:
+        except Exception:
             print('\n\n')
             traceback.print_exc()
             print('\n\n')
@@ -153,5 +157,5 @@ class synth_kbd(BaseModule):
             vb.vmbus_rescind_all_offers()
             del vb.ringbuffers[relid]
             del vb
-        self.rc_res.setStatusBit(self.rc_res.status.SUCCESS)
-        return self.rc_res.getReturnCode(ModuleResult.PASSED)
+        self.result.setStatusBit(self.result.status.SUCCESS)
+        return self.result.getReturnCode(ModuleResult.PASSED)
